@@ -27,10 +27,9 @@ refat_manifest.json
 
 # ── Misc local files ──────────────────────────────────────────────────────────
 innosetup.exe
-demo.jpg
 Icon.jpg
 Icon.png
-splash.jpg
+
 
 # ── Python virtual environments ───────────────────────────────────────────────
 venv/

@@ -1,0 +1,89 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing or new release tag, for example v1.0.0"
+        required: true
+        default: "v1.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install Python requirements
+        shell: pwsh
+        run: python -m pip install --upgrade pip; python -m pip install -r requirements.txt
+
+      - name: Extract Tcl/Tk libraries
+        shell: pwsh
+        run: |
+          $tclRoot = Join-Path (python -c "import sys; print(sys.base_prefix)") "tcl"
+          $outputRoot = Join-Path $PWD "tcl_extracted"
+          New-Item -ItemType Directory -Force (Join-Path $outputRoot "_tcl_data") | Out-Null
+          New-Item -ItemType Directory -Force (Join-Path $outputRoot "_tk_data") | Out-Null
+          $tclZip = Get-ChildItem $tclRoot -Filter "libtcl*.zip" | Select-Object -First 1
+          $tkZip = Get-ChildItem $tclRoot -Filter "libtk*.zip" | Select-Object -First 1
+          if (-not $tclZip -or -not $tkZip) { throw "Python Tcl/Tk zip archives were not found in $tclRoot" }
+          Expand-Archive -Path $tclZip.FullName -DestinationPath (Join-Path $outputRoot "_tcl_data") -Force
+          Expand-Archive -Path $tkZip.FullName -DestinationPath (Join-Path $outputRoot "_tk_data") -Force
+
+      - name: Build PyInstaller bundle
+        shell: pwsh
+        run: python -m PyInstaller --clean --noconfirm build.spec
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress --yes
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss'
+
+      - name: Create portable ZIP
+        shell: pwsh
+        run: Compress-Archive -Path "dist\RefatAndroidBackup\*" -DestinationPath "installer_output\RefatAndroidBackup_Portable.zip" -CompressionLevel Optimal
+
+      - name: Resolve release tag
+        id: release
+        shell: pwsh
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          PUSH_TAG: ${{ github.ref_name }}
+        run: |
+          $tag = if ($env:INPUT_TAG) { $env:INPUT_TAG } else { $env:PUSH_TAG }
+          if (-not $tag -or $tag -notmatch '^v') { throw "A release tag beginning with v is required" }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          $installer = Get-ChildItem "installer_output\*Setup.exe" | Select-Object -First 1
+          if (-not $installer) { throw "The Inno Setup installer was not produced" }
+          gh release view $env:RELEASE_TAG --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:RELEASE_TAG $installer.FullName "installer_output\RefatAndroidBackup_Portable.zip" --repo "${{ github.repository }}" --clobber
+          } else {
+            gh release create $env:RELEASE_TAG $installer.FullName "installer_output\RefatAndroidBackup_Portable.zip" --repo "${{ github.repository }}" --title "Refat Android Backup $env:RELEASE_TAG" --generate-notes
+          }
