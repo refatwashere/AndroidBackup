@@ -1,5 +1,5 @@
 ; ============================================================
-;  Refat's Android Full Backup V1.0.1 — Inno Setup Installer Script
+;  Refat's Android Full Backup V1.0.2 — Inno Setup Installer Script
 ;  Developer : Robiul Islam Refat
 ;  Website   : www.refatishere.free.nf
 ;  Contact   : rbl.islam.refat2@gmail.com
@@ -7,7 +7,7 @@
 ; ============================================================
 
 #define AppName      "Refat's Android Full Backup"
-#define AppVersion   "1.0.1"
+#define AppVersion   "1.0.2"
 #define AppPublisher "Robiul Islam Refat"
 #define AppURL       "https://github.com/refatwashere/AndroidBackup"
 #define AppWebsite   "www.refatishere.free.nf"

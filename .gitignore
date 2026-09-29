@@ -29,7 +29,7 @@ refat_manifest.json
 innosetup.exe
 Icon.jpg
 Icon.png
-
+README Latest.md
 
 # ── Python virtual environments ───────────────────────────────────────────────
 venv/

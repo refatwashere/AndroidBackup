@@ -1,4 +1,4 @@
-# Refat's Android Full Backup V1.0.1 — PyInstaller Build Spec
+# Refat's Android Full Backup V1.0.2 — PyInstaller Build Spec
 # ─────────────────────────────────────────────────────────────────────────────
 # Build steps:
 #   1. python build_icon.py          <- generates assets/Icon.ico
