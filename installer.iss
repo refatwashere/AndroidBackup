@@ -1,5 +1,5 @@
 ; ============================================================
-;  Refat's Android Full Backup V1.0 — Inno Setup Installer Script
+;  Refat's Android Full Backup V1.0.1 — Inno Setup Installer Script
 ;  Developer : Robiul Islam Refat
 ;  Website   : www.refatishere.free.nf
 ;  Contact   : rbl.islam.refat2@gmail.com
@@ -7,7 +7,7 @@
 ; ============================================================
 
 #define AppName      "Refat's Android Full Backup"
-#define AppVersion   "1.0"
+#define AppVersion   "1.0.1"
 #define AppPublisher "Robiul Islam Refat"
 #define AppURL       "https://github.com/refatwashere/AndroidBackup"
 #define AppWebsite   "www.refatishere.free.nf"
@@ -19,7 +19,7 @@
 AppId={#AppID}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppVerName={#AppName} V1.0
+AppVerName={#AppName} V{#AppVersion}
 AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}/issues
@@ -33,7 +33,7 @@ LicenseFile=EULA.txt
 InfoBeforeFile=WELCOME.txt
 InfoAfterFile=FINISH.txt
 OutputDir=installer_output
-OutputBaseFilename=RefatAndroidBackup_V1.0_Setup
+OutputBaseFilename=RefatAndroidBackup_V{#AppVersion}_Setup
 SetupIconFile=assets\Icon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -47,7 +47,7 @@ ShowLanguageDialog=no
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 UninstallDisplayIcon={app}\{#AppExeName}
-UninstallDisplayName={#AppName} V1.0
+UninstallDisplayName={#AppName} V{#AppVersion}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoCompany={#AppPublisher}
 VersionInfoDescription={#AppName} Installer

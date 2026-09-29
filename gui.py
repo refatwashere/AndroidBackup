@@ -11,7 +11,7 @@ from PIL import Image, ImageTk
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 APP_TITLE      = "Refat's Android Full Backup"
-APP_VERSION    = "1.0"
+APP_VERSION    = "1.0.1"
 APP_SUBTITLE   = "Multi-Device  •  MTKClient Engine"
 APP_DEVELOPER  = "Robiul Islam Refat"
 APP_WEBSITE    = "www.refatishere.free.nf"
