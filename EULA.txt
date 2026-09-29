@@ -1,0 +1,76 @@
+END USER LICENSE AGREEMENT (EULA)
+Refat's Android Full Backup — V1.0
+Multi-Device Edition
+
+PLEASE READ THIS AGREEMENT CAREFULLY BEFORE INSTALLING OR USING THIS SOFTWARE.
+By clicking "I Agree" or installing this software, you agree to be bound by the
+terms of this agreement. If you do not agree, do not install or use this software.
+
+-------------------------------------------------------------------------------
+
+1. GRANT OF LICENSE
+   Robiul Islam Refat ("Developer") grants you a non-exclusive, non-transferable,
+   royalty-free license to install and use this software solely for personal,
+   non-commercial purposes on devices you own or have legal authority to modify.
+
+2. PERMITTED USE
+   - Back up partition data from your own MediaTek-based Android device.
+   - Restore previously created backups to the same device.
+   - Generate scatter files for use with SP Flash Tool or UnlockTool.
+
+3. PROHIBITED USE
+   You may NOT:
+   - Use this software on devices you do not own or have explicit permission to modify.
+   - Distribute, sell, or sublicense this software for commercial gain.
+   - Use this software to circumvent security measures for unlawful purposes.
+   - Flash firmware from a different device model or region.
+
+4. DISCLAIMER OF WARRANTIES
+   THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. THE DEVELOPER
+   MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES
+   OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+
+5. LIMITATION OF LIABILITY
+   THE DEVELOPER SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   OR CONSEQUENTIAL DAMAGES ARISING FROM THE USE OR INABILITY TO USE THIS SOFTWARE,
+   INCLUDING BUT NOT LIMITED TO:
+   - Permanent device damage or "hard brick"
+   - Loss of data, IMEI, Wi-Fi MAC address, or DRM keys
+   - Voided manufacturer warranty
+   - Any damage resulting from incorrect use, power failure, or bad USB connections
+
+6. DEVICE RISK ACKNOWLEDGEMENT
+   You acknowledge and accept that:
+   - Flashing or restoring partitions carries an inherent risk of bricking the device.
+   - The Developer is not responsible for any damage caused by use of this software.
+   - You are solely responsible for maintaining adequate battery charge (>50%) during
+     all operations.
+   - You are solely responsible for verifying backup integrity before restoring.
+
+7. OPEN SOURCE COMPONENTS
+   This software incorporates open-source components (MTKClient, customtkinter, Pillow,
+   Python). Their respective licenses are included in LICENSE.txt. This EULA does not
+   supersede those licenses.
+
+8. UPDATES AND SUPPORT
+   The Developer may provide updates at their discretion. There is no obligation to
+   provide support, maintenance, or updates. Check for updates at:
+   https://github.com/refatwashere/AndroidBackup
+
+9. TERMINATION
+   This license is effective until terminated. It terminates automatically if you
+   violate any term of this agreement. Upon termination, you must uninstall and
+   destroy all copies of the software.
+
+10. GOVERNING LAW
+    This agreement shall be governed by applicable law. Any disputes shall be resolved
+    in the jurisdiction of the Developer's residence.
+
+-------------------------------------------------------------------------------
+
+Developer:  Robiul Islam Refat
+Website:    www.refatishere.free.nf
+Contact:    rbl.islam.refat2@gmail.com
+GitHub:     https://github.com/refatwashere/AndroidBackup
+
+Copyright (c) 2026 Robiul Islam Refat. All rights reserved.

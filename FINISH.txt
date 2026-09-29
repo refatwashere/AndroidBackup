@@ -1,0 +1,32 @@
+================================================================================
+  Installation Complete!
+================================================================================
+
+Refat's Android Full Backup V1.0 has been successfully installed on your PC.
+
+GETTING STARTED
+---------------
+  1. Run Setup tab  — installs Python dependencies (customtkinter, Pillow, etc.)
+  2. Open Settings  — select your device class (A / B / C)
+  3. Open Backup tab — set your destination folder
+  4. Connect your device in BROM mode (method shown in the Backup tab)
+  5. Click Start Backup and wait for "All dumped partitions success"
+  6. Use Scatter tab to export a flashable scatter file
+  7. Use Restore tab to flash the backup back if the device is bricked
+
+IMPORTANT REMINDERS
+-------------------
+  - Keep battery above 50% before any operation
+  - Never unplug USB during backup or restore
+  - Restore overwrites partitions permanently — verify backup first
+  - Hardware mismatch guard will block cross-device flashing automatically
+
+SUPPORT & UPDATES
+-----------------
+  GitHub  : https://github.com/refatwashere/AndroidBackup
+  Website : www.refatishere.free.nf
+  Contact : rbl.islam.refat2@gmail.com
+
+================================================================================
+  Thank you for using Refat's Android Full Backup!
+================================================================================

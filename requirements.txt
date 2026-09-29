@@ -1,0 +1,26 @@
+colorama
+# USB and serial communication
+pyserial
+pyusb
+
+# Cryptography used by MTKClient
+pycryptodome
+pycryptodomex
+
+# MTKClient runtime and GUI dependencies
+capstone
+unicorn
+keystone-engine
+keystone
+PySide6
+shiboken6
+fusepy
+
+# Application and build tooling
+requests
+setuptools
+wheel
+customtkinter
+Pillow
+pyinstaller
+flake8

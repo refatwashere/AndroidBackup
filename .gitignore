@@ -1,0 +1,45 @@
+# ── Build outputs ─────────────────────────────────────────────────────────────
+dist/
+build/
+*.spec.bak
+*.log
+*.zip
+.pytest_cache/
+
+# ── Installer output ──────────────────────────────────────────────────────────
+installer_output/
+
+# ── PyInstaller internals ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ── Tcl/Tk extracted zips (large, reproducible — see README Step 2) ───────────
+tcl_extracted/
+
+# ── GUI runtime config (contains local absolute paths) ───────────────────────
+gui_config.json
+
+# ── Actual backup data ────────────────────────────────────────────────────────
+BKUP/
+*.bin
+refat_manifest.json
+
+# ── Misc local files ──────────────────────────────────────────────────────────
+innosetup.exe
+demo.jpg
+Icon.jpg
+Icon.png
+splash.jpg
+
+# ── Python virtual environments ───────────────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ── OS / editor ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

@@ -1,0 +1,40 @@
+================================================================================
+  Refat's Android Full Backup — V1.0
+  Multi-Device Edition  |  MediaTek MTK Engine
+================================================================================
+
+ABOUT THIS SOFTWARE
+-------------------
+This tool allows you to create a complete ROM backup of your MediaTek Android
+device directly to your PC using MTKClient — no auth account required.
+
+Supported Device Classes:
+  - Class A: Legacy MT67xx  (Oppo A1k, A5s, Realme C2/C11, Redmi 9A)
+  - Class B: Dimensity/Helio  (Oppo Reno, OnePlus Nord CE MTK, Vivo V-Series)
+  - Class C: Samsung MTK  (Galaxy A10s, A12, M01s)
+
+Features:
+  - Full partition backup (preloader, boot, system, nvram, nvdata, and more)
+  - Hardware mismatch guard — blocks cross-device flash via refat_manifest.json
+  - Scatter file generator for SP Flash Tool / UnlockTool
+  - One-click restore for bricked or bootlooped devices
+  - Live logs with color-coded output
+  - Modern dark-themed GUI
+
+REQUIREMENTS
+------------
+  - Windows 10 or later (64-bit)
+  - MTK VCOM USB drivers installed
+  - UsbDk (USB Development Kit) installed
+  - MTKClient is bundled and repaired automatically on first run if necessary
+
+DEVELOPER
+---------
+  Robiul Islam Refat
+  www.refatishere.free.nf
+  rbl.islam.refat2@gmail.com
+  https://github.com/refatwashere/AndroidBackup
+
+================================================================================
+  Click Next to review the License Agreement and continue installation.
+================================================================================
