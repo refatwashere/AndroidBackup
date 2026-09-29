@@ -6,6 +6,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 import os
+import sys
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 BASE = os.path.dirname(os.path.abspath(SPEC))
@@ -78,7 +79,7 @@ coll = COLLECT(
 
 # ── Post-build: copy python314.dll next to the exe and into _internal ─────────
 import shutil
-_dll_src = os.path.join("C:\\", "Python314", "python314.dll")
+_dll_src = os.path.join(sys.base_prefix, "python314.dll")
 if os.path.exists(_dll_src):
     for _dst in [
         os.path.join(BASE, "dist", "RefatAndroidBackup", "python314.dll"),
