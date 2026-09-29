@@ -2,7 +2,7 @@
 
 ![Project Diagram](assets/ss.png)
 
-## Multi-Device Edition · V1.0.2
+## Multi-Device Edition · V1.0.3
 
 Back up MediaTek Android partitions, export scatter files, and restore a saved backup through a focused desktop GUI powered by MTKClient.
 
@@ -12,9 +12,9 @@ Back up MediaTek Android partitions, export scatter files, and restore a saved b
 
 | | |
 | --- | --- |
-| **Release** | [Download v1.0.2](https://github.com/refatwashere/AndroidBackup/releases/tag/v1.0.2) |
-| **Windows installer** | [RefatAndroidBackup_V1.0.2_Setup.exe](https://github.com/refatwashere/AndroidBackup/releases/download/v1.0.2/RefatAndroidBackup_V1.0.2_Setup.exe) |
-| **Portable build** | [RefatAndroidBackup_Portable.zip](https://github.com/refatwashere/AndroidBackup/releases/download/v1.0.2/RefatAndroidBackup_Portable.zip) |
+| **Release** | [Download v1.0.3](https://github.com/refatwashere/AndroidBackup/releases/tag/v1.0.3) |
+| **Windows installer** | [RefatAndroidBackup_V1.0.3_Setup.exe](https://github.com/refatwashere/AndroidBackup/releases/download/v1.0.3/RefatAndroidBackup_V1.0.3_Setup.exe) |
+| **Portable build** | [RefatAndroidBackup_Portable.zip](https://github.com/refatwashere/AndroidBackup/releases/download/v1.0.3/RefatAndroidBackup_Portable.zip) |
 | **Source** | [Browse this repository](https://github.com/refatwashere/AndroidBackup) |
 
 ## Contents
@@ -71,13 +71,13 @@ The connection profiles cover several MediaTek device families, but a profile is
 
 ### Installer
 
-1. Download [the v1.0.2 installer](https://github.com/refatwashere/AndroidBackup/releases/download/v1.0.2/RefatAndroidBackup_V1.0.2_Setup.exe).
+1. Download [the v1.0.3 installer](https://github.com/refatwashere/AndroidBackup/releases/download/v1.0.3/RefatAndroidBackup_V1.0.3_Setup.exe).
 2. Run the installer and follow its prompts.
 3. Install the required USB drivers and UsbDk, then launch **Refat's Android Full Backup** from the Start menu.
 
 ### Portable build
 
-1. Download [the portable ZIP](https://github.com/refatwashere/AndroidBackup/releases/download/v1.0.2/RefatAndroidBackup_Portable.zip).
+1. Download [the portable ZIP](https://github.com/refatwashere/AndroidBackup/releases/download/v1.0.3/RefatAndroidBackup_Portable.zip).
 2. Extract the entire archive to a folder; do not move the executable out of its companion files.
 3. Run `RefatAndroidBackup.exe` from the extracted folder.
 
@@ -194,15 +194,15 @@ Install Inno Setup 6, then run:
 & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer.iss
 ```
 
-Output: `installer_output\RefatAndroidBackup_V1.0.2_Setup.exe`.
+Output: `installer_output\RefatAndroidBackup_V1.0.3_Setup.exe`.
 
 ### Automated GitHub release
 
 Pushing a new tag that starts with `v` triggers the Windows release workflow. The workflow builds the installer and portable ZIP and attaches both to a GitHub Release. Use a new version tag for each release; for example:
 
 ```powershell
-git tag v1.0.2
-git push origin v1.0.2
+git tag v1.0.3
+git push origin v1.0.3
 ```
 
 The workflow can also be started from GitHub Actions using `workflow_dispatch`.
