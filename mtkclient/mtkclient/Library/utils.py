@@ -22,8 +22,17 @@ try:
 except ImportError:
     pass
 
-sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
-sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding='utf-8')
+def _wrap_utf8_stream(stream):
+    if stream is None or not hasattr(stream, "detach"):
+        return stream
+    try:
+        return io.TextIOWrapper(stream.detach(), encoding="utf-8")
+    except (AttributeError, io.UnsupportedOperation, OSError):
+        return stream
+
+
+sys.stdout = _wrap_utf8_stream(sys.stdout)
+sys.stderr = _wrap_utf8_stream(sys.stderr)
 
 
 class MTKTee:

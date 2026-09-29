@@ -411,10 +411,18 @@ class DaHandler(metaclass=LogBase):
             wf.write(data)
 
         count_gpt = 0
+        self.config.task_progress_total = sum(
+            partition.sectors * self.config.pagesize
+            for partition in guid_gpt.partentries
+            if partition.name not in skip
+        )
+        self.config.task_progress_offset = 0
         for partition in guid_gpt.partentries:
             partitionname = partition.name
             if partition.name in skip:
                 continue
+            partition_size = partition.sectors * self.config.pagesize
+            self.config.task_progress_label = partitionname
             filename = os.path.join(storedir, partitionname + ".bin")
             if display:
                 self.info(
@@ -434,6 +442,7 @@ class DaHandler(metaclass=LogBase):
                 count_gpt -= 1
                 if display:
                     self.error(f"Failed to dump partition {str(partition.name)} as {str(filename)}.")
+            self.config.task_progress_offset += partition_size
 
         partitions_for_read = len(guid_gpt.partentries) - len(skip)
         if count_gpt == partitions_for_read:
@@ -579,37 +588,38 @@ class DaHandler(metaclass=LogBase):
                 filenames.append(os.path.join(dirName, fname))
 
         if parttype == "user" or parttype is None:
-            i = 0
+            progress_plan = []
             for partfilename in filenames:
-                partition = os.path.basename(partfilename)
-                partition = os.path.splitext(partition)[0]
-                i += 1
+                partition = os.path.splitext(os.path.basename(partfilename))[0]
+                if partition == "gpt":
+                    progress_plan.append((partfilename, partition, os.stat(partfilename).st_size, 0))
+                elif partfilename.lower().endswith(".bin"):
+                    res = self.mtk.daloader.detect_partition(partition, parttype)
+                    if res[0]:
+                        rpartition = res[1]
+                        progress_plan.append((
+                            partfilename,
+                            partition,
+                            rpartition.sectors * self.config.pagesize,
+                            rpartition.sector * self.config.pagesize,
+                        ))
+
+            self.config.task_progress_total = sum(item[2] for item in progress_plan)
+            self.config.task_progress_offset = 0
+            for partfilename, partition, transfer_size, address in progress_plan:
+                self.config.task_progress_label = partition
                 if partition == "gpt":
                     self.info(f"Writing partition {partition}")
-                    if self.mtk.daloader.writeflash(addr=0,
-                                                    length=os.stat(partfilename).st_size,
-                                                    filename=partfilename,
-                                                    parttype=parttype):
-                        print(f"Wrote {partition} to sector {str(0)}")
-                    else:
-                        print(f"Failed to write {partition} to sector {str(0)}")
-                    continue
-                res = self.mtk.daloader.detect_partition(partition, parttype)
-                if res[0]:
-                    rpartition = res[1]
-                    if self.mtk.daloader.writeflash(addr=rpartition.sector * self.config.pagesize,
-                                                    length=rpartition.sectors * self.config.pagesize,
-                                                    filename=partfilename,
-                                                    parttype=parttype):
-                        print(
-                            f"Wrote {partfilename} to sector {str(rpartition.sector)} with " +
-                            f"sector count {str(rpartition.sectors)}.")
-                    else:
-                        print(
-                            f"Failed to write {partfilename} to sector {str(rpartition.sector)} with " +
-                            f"sector count {str(rpartition.sectors)}.")
+                if self.mtk.daloader.writeflash(addr=address,
+                                                length=transfer_size,
+                                                filename=partfilename,
+                                                parttype=parttype):
+                    print(f"Wrote {partfilename} to sector {address // self.config.pagesize} with " +
+                          f"sector count {transfer_size}.")
                 else:
-                    self.error(f"Error: Couldn't detect partition: {partition}\n, skipping")
+                    print(f"Failed to write {partfilename} to sector {address // self.config.pagesize} with " +
+                          f"sector count {transfer_size}.")
+                self.config.task_progress_offset += transfer_size
         else:
             pos = 0
             for partfilename in filenames:

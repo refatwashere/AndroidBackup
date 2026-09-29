@@ -18,6 +18,8 @@ from mtkclient.Library.error import ErrorHandler
 from mtkclient.Library.DA.mtk_da_handler import DaHandler
 from mtkclient.Library.Partitions.gpt import GptSettings
 
+gui_progress = None
+
 metamodes = "[FASTBOOT, FACTFACT, METAMETA, FACTORYM, ADVEMETA, AT+NBOOT]"
 
 
@@ -361,7 +363,9 @@ class Main(metaclass=LogBase):
                     sys.exit(1)
         except Exception:
             pass
-        config = MtkConfig(loglevel=loglevel, gui=None, guiprogress=None)
+        config = MtkConfig(loglevel=loglevel, gui=None, guiprogress=gui_progress)
+        if gui_progress is not None and hasattr(gui_progress, "config"):
+            gui_progress.config = config
         ArgHandler(self.args, config)
         self.eh = ErrorHandler()
         serialport = None

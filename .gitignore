@@ -30,7 +30,7 @@ innosetup.exe
 Icon.jpg
 Icon.png
 README Latest.md
-
+SESSION_FIXES.md
 # ── Python virtual environments ───────────────────────────────────────────────
 venv/
 .venv/

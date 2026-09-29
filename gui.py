@@ -6,8 +6,8 @@ import sys
 import json
 import webbrowser
 from datetime import datetime
-from tkinter import filedialog, messagebox
-from PIL import Image, ImageTk
+from tkinter import PhotoImage, filedialog, messagebox
+from PIL import Image
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 APP_TITLE      = "Refat's Android Full Backup"
@@ -209,8 +209,8 @@ class MTKApp(ctk.CTk):
         self.configure(fg_color=SURFACE)
 
         try:
-            img = ImageTk.PhotoImage(file=os.path.join(ASSETS_DIR, "Icon_32x32.png"))
-            self.wm_iconphoto(True, img)
+            self._icon_image = PhotoImage(file=os.path.join(ASSETS_DIR, "Icon_32x32.png"))
+            self.wm_iconphoto(True, self._icon_image)
         except Exception:
             pass
 
@@ -296,40 +296,43 @@ class MTKApp(ctk.CTk):
                      "error": DANGER, "cmd": "#79c0ff"}
         self.frames["logs"].append(prefix + msg, color_map.get(tag, "white"))
 
-    def run_command(self, cmd, on_done=None):
+    def _handle_command_line(self, line, on_progress=None):
+        if line.startswith("REFAT_PROGRESS|"):
+            try:
+                _, percent, label = line.split("|", 2)
+                if on_progress:
+                    self.after(0, on_progress, float(percent), label)
+            except (ValueError, TypeError):
+                pass
+            return
+
+        if not line:
+            return
+        lowered = line.lower()
+        tag = ("ok" if any(word in lowered for word in ["success", "done", "complete", "finish", "saved"]) else
+               "error" if any(word in lowered for word in ["error", "fail", "exception", "traceback", "critical", "blocked"]) else
+               "warn" if any(word in lowered for word in ["warning", "warn", "skip", "missing", "mismatch"]) else "info")
+        self.after(0, self.log, line, tag)
+
+    def run_command(self, cmd, on_done=None, on_progress=None, show_logs=True):
         self.log("$ " + " ".join(str(c) for c in cmd), "cmd")
 
         def _worker():
             try:
+                process_cmd = cmd
                 if getattr(sys, "frozen", False) and len(cmd) > 2 and cmd[1] == ENGINE:
-                    import contextlib
-                    import io
-                    import refat_backup_engine
-                    output = io.StringIO()
-                    with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-                        rc = refat_backup_engine.main(cmd[2:])
-                    for line in output.getvalue().splitlines():
-                        self.after(0, self.log, line, "info")
-                    self.after(0, self.log, f"Exited with code {rc}", "ok" if rc == 0 else "error")
-                    if on_done:
-                        self.after(0, on_done, rc)
-                    return
-                self.process = subprocess.Popen(
-                    cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                    process_cmd = [sys.executable, "--refat-engine-worker", *cmd[2:]]
+                process = subprocess.Popen(
+                    process_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                     text=True, cwd=BASE_DIR,
                     creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
                 )
-                for line in self.process.stdout:
-                    line = line.rstrip()
-                    if not line:
-                        continue
-                    ll = line.lower()
-                    tag = ("ok"    if any(w in ll for w in ["success", "done", "complete", "finish", "saved"]) else
-                           "error" if any(w in ll for w in ["error", "fail", "exception", "traceback", "critical", "blocked"]) else
-                           "warn"  if any(w in ll for w in ["warning", "warn", "skip", "missing", "mismatch"]) else "info")
-                    self.after(0, self.log, line, tag)
-                self.process.wait()
-                rc = self.process.returncode
+                self.process = process
+                if process.stdout is not None:
+                    for line in process.stdout:
+                        self._handle_command_line(line.rstrip(), on_progress)
+                process.wait()
+                rc = process.returncode if process.returncode is not None else -1
                 self.after(0, self.log, f"Exited with code {rc}", "ok" if rc == 0 else "error")
                 if on_done:
                     self.after(0, on_done, rc)
@@ -341,7 +344,8 @@ class MTKApp(ctk.CTk):
                 self.process = None
 
         threading.Thread(target=_worker, daemon=True).start()
-        self._show("logs")
+        if show_logs:
+            self._show("logs")
 
     def stop_command(self):
         if self.process:
@@ -467,7 +471,33 @@ class HomeFrame(ctk.CTkScrollableFrame):
                 for line in devices.splitlines()
             )
             if not connected:
-                self.after(0, self._set_disconnected)
+                try:
+                    from refat_backup_engine import detect_usb_devices
+
+                    usb_devices = detect_usb_devices()
+                except Exception as exc:
+                    self.after(0, self._set_usb_scan_error)
+                    self.app.after(0, self.app.log, f"Home USB scan failed: {exc}", "warn")
+                    return
+
+                usb_modes = {
+                    (0x0E8D, 0x0003): ("MediaTek BROM", "BROM"),
+                    (0x0E8D, 0x6000): ("MediaTek Preloader", "Preloader"),
+                    (0x0E8D, 0x2000): ("MediaTek Preloader", "Preloader"),
+                    (0x0E8D, 0x2001): ("MediaTek Preloader", "Preloader"),
+                    (0x0E8D, 0x20FF): ("MediaTek Preloader", "Preloader"),
+                    (0x0E8D, 0x3000): ("MediaTek Preloader", "Preloader"),
+                    (0x22D9, 0x0006): ("OPPO Preloader", "Preloader"),
+                }
+                mtk_device = next(
+                    ((vid, pid, *usb_modes[(vid, pid)])
+                     for vid, pid in usb_devices if (vid, pid) in usb_modes),
+                    None
+                )
+                if mtk_device:
+                    self.after(0, self._set_usb_device, *mtk_device)
+                else:
+                    self.after(0, self._set_disconnected)
                 return
 
             def prop(key):
@@ -530,6 +560,31 @@ class HomeFrame(ctk.CTkScrollableFrame):
             self.after(0, self._set_info, data)
 
         threading.Thread(target=_worker, daemon=True).start()
+
+    def _set_usb_device(self, vid, pid, device_name, mode):
+        self._status_dot.configure(
+            text=f"  \u25cf  Connected ({mode})", text_color=SUCCESS, fg_color="#0d2b1a"
+        )
+        unavailable = f"N/A in {mode} mode"
+        values = {
+            "model": f"{device_name}  ({vid:04X}:{pid:04X})",
+            "battery": unavailable,
+            "storage": unavailable,
+            "sdcard": unavailable,
+            "network": unavailable,
+            "android": unavailable,
+            "build": unavailable,
+            "owner": unavailable,
+        }
+        for key, value in values.items():
+            self._info_labels[key].configure(text=value)
+
+    def _set_usb_scan_error(self):
+        self._status_dot.configure(text="  \u25cf  USB scan failed", text_color=WARNING,
+                                   fg_color="#2d2200")
+        for lbl in self._info_labels.values():
+            lbl.configure(text="\u2014")
+        self._info_labels["model"].configure(text="See Logs for USB scan error")
 
     def _set_disconnected(self):
         self._status_dot.configure(text="  \u25cf  No device", text_color=TEXT_MUTED, fg_color=SURFACE)
@@ -671,9 +726,12 @@ class BackupFrame(ctk.CTkScrollableFrame):
         brom_steps(inner, ctk.StringVar(value=self.app.cfg.get("device_class", "A")))
 
         self.badge = status_pill(inner)
-        self.prog = ctk.CTkProgressBar(inner, height=6, fg_color=SURFACE, progress_color=ACCENT)
+        self.prog = ctk.CTkProgressBar(inner, height=10, fg_color=SURFACE, progress_color=ACCENT)
         self.prog.pack(fill="x", pady=(8, 0))
         self.prog.set(0)
+        self.progress_lbl = ctk.CTkLabel(inner, text="Waiting to start",
+                         font=ctk.CTkFont(size=11), text_color=TEXT_MUTED)
+        self.progress_lbl.pack(anchor="w", pady=(4, 0))
 
         btn_row = ctk.CTkFrame(inner, fg_color="transparent")
         btn_row.pack(anchor="w", pady=(14, 0))
@@ -685,6 +743,10 @@ class BackupFrame(ctk.CTkScrollableFrame):
         d = filedialog.askdirectory(title="Select Backup Folder")
         if d:
             self.dir_var.set(d)
+
+    def _update_progress(self, percent, label):
+        self.prog.set(max(0.0, min(1.0, percent / 100.0)))
+        self.progress_lbl.configure(text=f"{percent:.1f}%  |  {label}")
 
     def _run(self):
         d = self.dir_var.get().strip()
@@ -698,16 +760,17 @@ class BackupFrame(ctk.CTkScrollableFrame):
         cmd = ["python", ENGINE, "backup", d, "--skip", self.skip_var.get().strip() or "userdata"]
 
         set_pill(self.badge, "running")
-        self.prog.configure(mode="indeterminate")
-        self.prog.start()
+        self.prog.configure(mode="determinate")
+        self.prog.set(0)
+        self.progress_lbl.configure(text="Preparing backup...")
 
         def _done(rc):
-            self.prog.stop()
-            self.prog.configure(mode="determinate")
             self.prog.set(1 if rc == 0 else 0)
+            self.progress_lbl.configure(text="100.0%  |  Backup complete" if rc == 0 else "Backup failed")
             set_pill(self.badge, "ok" if rc == 0 else "error")
 
-        self.app.run_command(cmd, on_done=_done)
+        self.app.run_command(cmd, on_done=_done, on_progress=self._update_progress,
+                     show_logs=False)
 
 
 # ── Scatter Frame ──────────────────────────────────────────────────────────────
@@ -829,9 +892,12 @@ class RestoreFrame(ctk.CTkScrollableFrame):
         brom_steps(inner, ctk.StringVar(value=self.app.cfg.get("device_class", "A")))
 
         self.badge = status_pill(inner)
-        self.prog = ctk.CTkProgressBar(inner, height=6, fg_color=SURFACE, progress_color=DANGER)
+        self.prog = ctk.CTkProgressBar(inner, height=10, fg_color=SURFACE, progress_color=DANGER)
         self.prog.pack(fill="x", pady=(8, 0))
         self.prog.set(0)
+        self.progress_lbl = ctk.CTkLabel(inner, text="Waiting to start",
+                         font=ctk.CTkFont(size=11), text_color=TEXT_MUTED)
+        self.progress_lbl.pack(anchor="w", pady=(4, 0))
 
         btn_row = ctk.CTkFrame(inner, fg_color="transparent")
         btn_row.pack(anchor="w", pady=(14, 0))
@@ -845,6 +911,10 @@ class RestoreFrame(ctk.CTkScrollableFrame):
         if d:
             self.dir_var.set(d)
             self._scan()
+
+    def _update_progress(self, percent, label):
+        self.prog.set(max(0.0, min(1.0, percent / 100.0)))
+        self.progress_lbl.configure(text=f"{percent:.1f}%  |  {label}")
 
     def _scan(self):
         d = self.dir_var.get().strip()
@@ -885,16 +955,17 @@ class RestoreFrame(ctk.CTkScrollableFrame):
             return
 
         set_pill(self.badge, "running")
-        self.prog.configure(mode="indeterminate")
-        self.prog.start()
+        self.prog.configure(mode="determinate")
+        self.prog.set(0)
+        self.progress_lbl.configure(text="Preparing restore...")
 
         def _done(rc):
-            self.prog.stop()
-            self.prog.configure(mode="determinate")
             self.prog.set(1 if rc == 0 else 0)
+            self.progress_lbl.configure(text="100.0%  |  Restore complete" if rc == 0 else "Restore failed")
             set_pill(self.badge, "ok" if rc == 0 else "error")
 
-        self.app.run_command(["python", ENGINE, "--restore", d], on_done=_done)
+        self.app.run_command(["python", ENGINE, "--restore", d], on_done=_done,
+                             on_progress=self._update_progress, show_logs=False)
 
 
 # ── Logs Frame ─────────────────────────────────────────────────────────────────
@@ -1131,6 +1202,18 @@ class AboutFrame(ctk.CTkScrollableFrame):
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    if getattr(sys, "frozen", False) and len(sys.argv) > 1 and sys.argv[1] == "--refat-engine-worker":
+        for stream_name, stream_fd in (("stdout", 1), ("stderr", 2)):
+            if getattr(sys, stream_name) is None:
+                try:
+                    setattr(sys, stream_name, os.fdopen(
+                        stream_fd, "w", encoding="utf-8", buffering=1, closefd=False
+                    ))
+                except OSError:
+                    pass
+        import refat_backup_engine
+        raise SystemExit(refat_backup_engine.main(sys.argv[2:]))
+
     splash_root = ctk.CTk()
     splash_root.withdraw()
     splash = SplashScreen()

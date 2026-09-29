@@ -43,9 +43,9 @@ The app brings common MediaTek backup tasks together in one interface:
 | --- | --- |
 | Device overview | ADB device details when an Android device is available, plus quick actions |
 | Setup | Python and dependency checks; a udev-rule helper on Linux |
-| Backup | Destination selection, configurable skipped partitions, connection guidance, and live status |
+| Backup | Destination selection, configurable skipped partitions, connection guidance, and byte-weighted progress |
 | Scatter | GPT output and scatter-file export |
-| Restore | Backup-folder scan, manifest preview, confirmation prompt, and restore status |
+| Restore | Backup-folder scan, manifest preview, confirmation prompt, and byte-weighted progress |
 | Logs | Live output with level filters and save-to-file support |
 | Settings | Theme, device class, default paths, skipped partitions, and timestamp preferences |
 | About | App version, developer details, and contact links |
@@ -112,7 +112,7 @@ These are starting points, not universal key combinations. Follow the live instr
 3. Open **Backup** and select a destination folder. The default is `C:\OppoA1kBackup`.
 4. Review the skip list. `userdata` is skipped by default because it can be encrypted and very large. Change the list only when you understand the storage and restore implications.
 5. Click **Start Backup**, then connect the phone using the displayed BROM steps.
-6. Follow progress in **Logs**. Keep the cable connected until the operation finishes.
+6. Follow the byte-weighted percentage on **Backup** and detailed output in **Logs**. The percentage starts when partition data transfer begins, after device connection/setup. Keep the cable connected until the operation finishes.
 7. Check the destination for the partition files and `refat_manifest.json`. The engine logs warnings if expected critical files are missing.
 
 Partition names depend on the device and the MTKClient response. Common examples include `preloader.bin`, `boot.bin`, `nvram.bin`, `nvdata.bin`, and system or super images.
@@ -135,7 +135,7 @@ The default filename is `MT6765_Android_scatter.txt`; the detected platform may 
 2. Select **Scan Folder** and review the file count and manifest information.
 3. Confirm the correct device class and follow its BROM connection instructions.
 4. Select **Start Restore** and read the confirmation prompt carefully.
-5. Keep the USB connection stable until completion. After a successful restore, disconnect and hold Power to restart the phone.
+5. Track the byte-weighted percentage on **Restore** and keep the USB connection stable until completion. The percentage starts when partition writing begins, after device connection/setup. After a successful restore, disconnect and hold Power to restart the phone.
 
 The engine checks for a hardware mismatch when the manifest contains a known hardware code. A missing or unknown hardware code means that automatic mismatch checking is skipped; the backup engine currently may write `unknown`. **Do not rely on the manifest alone to establish device compatibility. Verify the phone model and backup provenance yourself before restoring.**
 
@@ -286,7 +286,7 @@ The Windows release bundles MTKClient 2.1.4.1. If the bundled copy is missing, t
 
 ## Credits and contact
 
-With sincere gratitude to [Bkerler](https://github.com/bkerler) and all [MTKClient contributors](https://github.com/bkerler/mtkclient#credits) for creating, maintaining, and sharing the open-source tool this project builds on. The bundled MTKClient 2.1.4.1 is licensed under GPL-3.0; its license is included at [`mtkclient-2.1.4.1/LICENSE`](mtkclient-2.1.4.1/LICENSE). See `LICENSE.txt` for this project's license and other third-party notices, and `EULA.txt` for the end-user terms.
+With sincere gratitude to [Bkerler](https://github.com/bkerler) and all [MTKClient contributors](https://github.com/bkerler/mtkclient#credits) for creating, maintaining, and sharing the open-source tool this project builds on. The bundled MTKClient 2.1.4.1 is licensed under GPL-3.0; its license is included at [`mtkclient/LICENSE`](mtkclient/LICENSE). See `LICENSE.txt` for this project's license and other third-party notices, and `EULA.txt` for the end-user terms.
 
 - **Developer:** Robiul Islam Refat
 - **Website:** [Refat Android Backup](https://www.refatishere.free.nf/android-backup.html)

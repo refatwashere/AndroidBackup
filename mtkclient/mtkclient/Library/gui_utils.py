@@ -29,10 +29,15 @@ class progress:
         self.oldpos = offset
         self.oldtime = time.time()
         self.offset = offset
-        if guiprogress is not None:
+        if guiprogress is not None and hasattr(guiprogress, "update_transfer"):
+            self.guiprogress = guiprogress.update_transfer
+            self._guiprogress_has_total = True
+        elif guiprogress is not None:
             self.guiprogress = guiprogress.emit
+            self._guiprogress_has_total = False
         else:
             self.guiprogress = None
+            self._guiprogress_has_total = False
 
     def clear(self):
         self.start = time.time()
@@ -96,7 +101,10 @@ class progress:
         else:
             prog = 0.0
         if self.guiprogress is not None:
-            self.guiprogress(self.pos)
+            if self._guiprogress_has_total:
+                self.guiprogress(self.pos, self.total)
+            else:
+                self.guiprogress(self.pos)
         else:
             if not self.start:
                 curtime = time.time()

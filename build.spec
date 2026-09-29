@@ -15,6 +15,8 @@ ctk_datas = collect_data_files("customtkinter")
 TCL_SRC = os.path.join(BASE, "tcl_extracted", "_tcl_data")
 TK_SRC  = os.path.join(BASE, "tcl_extracted", "_tk_data")
 MTK_SRC = os.path.join(BASE, "mtkclient-2.1.4.1")
+if not os.path.isdir(MTK_SRC):
+    MTK_SRC = os.path.join(BASE, "mtkclient")
 
 a = Analysis(
     [os.path.join(BASE, "gui.py")],

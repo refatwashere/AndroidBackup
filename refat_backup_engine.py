@@ -24,13 +24,56 @@ SKIP_DEFAULT = "userdata"
 
 
 def _mtk_dir():
-    bundled = os.path.join(BASE_DIR, MTK_NAME)
-    if os.path.isfile(os.path.join(bundled, "mtk.py")):
-        return bundled
+    directory = BASE_DIR
+    for _ in range(4):
+        for name in (MTK_NAME, "mtkclient"):
+            candidate = os.path.join(directory, name)
+            if os.path.isfile(os.path.join(candidate, "mtk.py")):
+                return candidate
+        parent = os.path.dirname(directory)
+        if parent == directory:
+            break
+        directory = parent
     local = os.path.join(APP_DATA, MTK_NAME)
     if os.path.isfile(os.path.join(local, "mtk.py")):
         return local
     return None
+
+
+_DLL_DIRECTORY_HANDLES = []
+_DLL_DIRECTORIES = set()
+
+
+def _prepare_mtk_dll_path(mtk_dir):
+    windows_dir = os.path.abspath(os.path.join(mtk_dir, "mtkclient", "Windows"))
+    if os.name != "nt" or not os.path.isdir(windows_dir):
+        return
+    if windows_dir.lower() not in _DLL_DIRECTORIES:
+        _DLL_DIRECTORIES.add(windows_dir.lower())
+        os.environ["PATH"] = windows_dir + os.pathsep + os.environ.get("PATH", "")
+        try:
+            _DLL_DIRECTORY_HANDLES.append(os.add_dll_directory(windows_dir))
+        except (AttributeError, OSError):
+            pass
+
+
+def detect_usb_devices():
+    mtk_dir = _mtk_dir()
+    if not mtk_dir:
+        raise RuntimeError("MTKClient is not installed.")
+
+    _prepare_mtk_dll_path(mtk_dir)
+    old_path = list(sys.path)
+    try:
+        sys.path.insert(0, mtk_dir)
+        from mtkclient.Library.Connection.usblib import UsbClass
+
+        usb = UsbClass()
+        if usb.backend is None:
+            raise RuntimeError("The MTKClient USB backend could not be loaded.")
+        return [(device.vid, device.pid) for device in usb.detectdevices()]
+    finally:
+        sys.path[:] = old_path
 
 
 def ensure_mtkclient():
@@ -49,24 +92,82 @@ def ensure_mtkclient():
     return directory
 
 
+class _ProgressSink:
+    def __init__(self):
+        self.config = None
+        self.last_percent = -1
+        self.last_label = None
+
+    def update_transfer(self, position, transfer_total):
+        task_total = getattr(self.config, "task_progress_total", 0)
+        if not task_total:
+            return
+        task_offset = getattr(self.config, "task_progress_offset", 0)
+        completed = task_offset + min(position, transfer_total)
+        percent = min(100.0, max(0.0, completed * 100.0 / task_total))
+        rounded = int(percent)
+        label = getattr(self.config, "task_progress_label", "Transfer")
+        label = str(label).replace("|", "/").replace("\n", " ")
+        if rounded == self.last_percent and label == self.last_label:
+            return
+        self.last_percent = rounded
+        self.last_label = label
+        print(f"REFAT_PROGRESS|{percent:.2f}|{label}", flush=True)
+
+
+class _Tee:
+    def __init__(self, target):
+        self.target = target
+        self.captured = io.StringIO()
+
+    def write(self, text):
+        self.captured.write(text)
+        self.target.write(text)
+        self.target.flush()
+        return len(text)
+
+    def flush(self):
+        self.target.flush()
+
+
 def _run(cmd):
-    cwd = ensure_mtkclient()
-    print(f"$ {' '.join(str(c) for c in cmd)}")
-    mtk_path = os.path.join(cwd, "mtk.py")
-    old_path, old_argv = os.getcwd(), sys.argv
     try:
-        sys.path.insert(0, cwd)
+        mtk_dir = ensure_mtkclient()
+    except Exception as exc:
+        print(f"[ERROR] MTKClient launcher could not be located or prepared: {exc}")
+        return 1
+    _prepare_mtk_dll_path(mtk_dir)
+    mtk_path = os.path.join(mtk_dir, "mtk.py")
+    print(f"$ {mtk_path} {' '.join(str(c) for c in cmd[2:])}")
+    old_dir, old_argv = os.getcwd(), sys.argv
+    old_path = list(sys.path)
+    progress_sink = _ProgressSink()
+    try:
+        os.chdir(mtk_dir)
+        sys.path.insert(0, mtk_dir)
         sys.argv = [mtk_path] + list(cmd[2:])
         import mtk
-        try:
-            return int(mtk.main() or 0)
-        except SystemExit as exc:
-            return int(exc.code or 0)
+        from mtkclient.Library import mtk_main
+        mtk_main.gui_progress = progress_sink
+        output = _Tee(sys.stdout)
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+            try:
+                rc = int(mtk.main() or 0)
+            except SystemExit as exc:
+                rc = int(exc.code or 0)
+        if "please disconnect, start mtkclient and reconnect" in output.captured.getvalue().lower():
+            print("[ERROR] MTKClient could not configure the device and requested a reconnect.")
+            print("[ERROR] Check BROM mode, the USB connection, and the Windows USB drivers.")
+            return 1
+        return rc
     finally:
+        try:
+            mtk_main.gui_progress = None
+        except (UnboundLocalError, NameError):
+            pass
         sys.argv = old_argv
-        os.chdir(old_path)
-        if cwd in sys.path:
-            sys.path.remove(cwd)
+        sys.path[:] = old_path
+        os.chdir(old_dir)
 
 
 def _run_capture(cmd):
