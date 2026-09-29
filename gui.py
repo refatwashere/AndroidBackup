@@ -4,14 +4,20 @@ import threading
 import os
 import sys
 import json
+import webbrowser
 from datetime import datetime
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 APP_TITLE      = "Refat's Android Full Backup"
-APP_VERSION    = "V1.0"
+APP_VERSION    = "1.0"
 APP_SUBTITLE   = "Multi-Device  •  MTKClient Engine"
+APP_DEVELOPER  = "Robiul Islam Refat"
+APP_WEBSITE    = "www.refatishere.free.nf"
+APP_EMAIL      = "rbl.islam.refat2@gmail.com"
+APP_REPOSITORY = "https://github.com/refatwashere/AndroidBackup"
+APP_DESCRIPTION = "Back up and restore MediaTek Android partitions, and generate scatter files."
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR     = os.path.join(BASE_DIR, "assets")
 CONFIG_FILE    = os.path.join(BASE_DIR, "gui_config.json")
@@ -176,7 +182,7 @@ class SplashScreen(ctk.CTkToplevel):
 
         ctk.CTkLabel(self, text=APP_TITLE,
                      font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(6, 2))
-        ctk.CTkLabel(self, text=f"v{APP_VERSION}  \u2022  Loading\u2026",
+        ctk.CTkLabel(self, text=f"V{APP_VERSION}  \u2022  Loading\u2026",
                      font=ctk.CTkFont(size=11), text_color=TEXT_MUTED).pack()
 
         self.bar = ctk.CTkProgressBar(self, width=460, height=4,
@@ -228,6 +234,7 @@ class MTKApp(ctk.CTk):
             "restore":  RestoreFrame(self.content, self),
             "logs":     LogsFrame(self.content, self),
             "settings": SettingsFrame(self.content, self),
+            "about":    AboutFrame(self.content, self),
         }
         for fr in self.frames.values():
             fr.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -258,6 +265,7 @@ class MTKApp(ctk.CTk):
             ("\U0001f504  Restore",  "restore"),
             ("\U0001f4cb  Logs",     "logs"),
             ("\U0001f3a8  Settings", "settings"),
+            ("\u2139\ufe0f  About",     "about"),
         ]
         ctk.CTkFrame(sb, height=8, fg_color="transparent").pack()
         for label, key in nav:
@@ -272,7 +280,7 @@ class MTKApp(ctk.CTk):
 
         ctk.CTkFrame(sb, fg_color="transparent").pack(expand=True)
         ctk.CTkFrame(sb, height=1, fg_color=BORDER).pack(fill="x", padx=16)
-        ctk.CTkLabel(sb, text=f"v{APP_VERSION}",
+        ctk.CTkLabel(sb, text=f"V{APP_VERSION}",
                      font=ctk.CTkFont(size=10), text_color=TEXT_MUTED).pack(pady=(8, 14))
 
     def _show(self, key):
@@ -352,7 +360,7 @@ class HomeFrame(ctk.CTkScrollableFrame):
         title_row.pack(fill="x", padx=32, pady=(24, 0))
         ctk.CTkLabel(title_row, text=APP_TITLE,
                      font=ctk.CTkFont(size=22, weight="bold")).pack(side="left")
-        ctk.CTkLabel(title_row, text=f"v{APP_VERSION}",
+        ctk.CTkLabel(title_row, text=f"V{APP_VERSION}",
                      font=ctk.CTkFont(size=12), text_color=TEXT_MUTED).pack(side="left", padx=(10, 0), pady=(6, 0))
         ctk.CTkLabel(self, text=APP_SUBTITLE,
                      font=ctk.CTkFont(size=12), text_color=TEXT_MUTED).pack(anchor="w", padx=32, pady=(2, 12))
@@ -1071,6 +1079,54 @@ class SettingsFrame(ctk.CTkScrollableFrame):
         self.app.frames["restore"].dir_var.set(self.app.cfg["backup_dir"])
         self.saved_lbl.configure(text="\u2714  Saved")
         self.after(3000, lambda: self.saved_lbl.configure(text=""))
+
+
+# ── About Frame ────────────────────────────────────────────────────────────────
+class AboutFrame(ctk.CTkScrollableFrame):
+    def __init__(self, parent, app):
+        super().__init__(parent, corner_radius=0, fg_color="transparent")
+        self.app = app
+
+        page_title(self, "\u2139\ufe0f  About")
+
+        app_card = card(self)
+        app_card.pack(fill="x", padx=32, pady=(8, 12))
+        app_inner = ctk.CTkFrame(app_card, fg_color="transparent")
+        app_inner.pack(fill="x", padx=20, pady=18)
+        section_label(app_inner, "APPLICATION")
+        ctk.CTkLabel(app_inner, text=APP_TITLE,
+                     font=ctk.CTkFont(size=18, weight="bold")).pack(anchor="w")
+        ctk.CTkLabel(app_inner, text=f"Version V{APP_VERSION}  \u2022  {APP_SUBTITLE}",
+                     font=ctk.CTkFont(size=12), text_color=TEXT_MUTED).pack(anchor="w", pady=(3, 8))
+        ctk.CTkLabel(app_inner, text=APP_DESCRIPTION,
+                     font=ctk.CTkFont(size=12), text_color="#cccccc",
+                     wraplength=680, justify="left", anchor="w").pack(anchor="w", fill="x")
+
+        developer_card = card(self)
+        developer_card.pack(fill="x", padx=32, pady=(0, 20))
+        developer_inner = ctk.CTkFrame(developer_card, fg_color="transparent")
+        developer_inner.pack(fill="x", padx=20, pady=18)
+        section_label(developer_inner, "DEVELOPER & CONTACT")
+
+        details = [
+            ("Developer", APP_DEVELOPER, None),
+            ("Email", APP_EMAIL, f"mailto:{APP_EMAIL}"),
+            ("Website", APP_WEBSITE, f"https://{APP_WEBSITE}"),
+            ("GitHub", APP_REPOSITORY, APP_REPOSITORY),
+        ]
+        for label, value, url in details:
+            row = ctk.CTkFrame(developer_inner, fg_color="transparent")
+            row.pack(fill="x", pady=2)
+            ctk.CTkLabel(row, text=label, width=100, anchor="w",
+                         font=ctk.CTkFont(size=12), text_color=TEXT_MUTED).pack(side="left")
+            if url:
+                ctk.CTkButton(row, text=value, command=lambda link=url: webbrowser.open(link),
+                              anchor="w", height=30, fg_color="transparent",
+                              hover_color=SURFACE2, text_color=ACCENT_HOVER,
+                              font=ctk.CTkFont(size=12), corner_radius=6).pack(side="left", fill="x", expand=True)
+            else:
+                ctk.CTkLabel(row, text=value, anchor="w",
+                             font=ctk.CTkFont(size=12)).pack(side="left", fill="x", expand=True)
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
